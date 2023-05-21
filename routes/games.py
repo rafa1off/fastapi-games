@@ -24,7 +24,7 @@ async def games(limit=5, page=1, name=None, genre=None, platform=None) -> list[G
         list_games = await Games.all().limit(limit).offset(skip)
         return list_games
 
-@router.post('/')
+@router.post('/', status_code=201)
 async def add_game(game: Game) -> dict:
     await Games.create(
         name=game.name,
