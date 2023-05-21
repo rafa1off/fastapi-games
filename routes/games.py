@@ -8,7 +8,13 @@ router = APIRouter(
 )
 
 @router.get('/', response_model=None)
-async def games(limit=5, page=1, name=None, genre=None, platform=None) -> list[Games] | None:
+async def games(
+    limit: int = 5,
+    page: int = 1,
+    name: str | None = None,
+    genre: str | None = None,
+    platform: str | None = None
+) -> list[Games] | None:
     skip = limit * (page - 1)
     if name or genre or platform:
         if name:

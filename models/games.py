@@ -9,4 +9,4 @@ class Games(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['-id']
