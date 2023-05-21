@@ -8,10 +8,21 @@ router = APIRouter(
 )
 
 @router.get('/', response_model=None)
-async def games(limit=5, page=1) -> list[Games]:
+async def games(limit=5, page=1, name=None, genre=None, platform=None) -> list[Games] | None:
     skip = limit * (page - 1)
-    list_games = await Games.all().limit(limit).offset(skip)
-    return list_games
+    if name or genre or platform:
+        if name:
+            list_games = await Games.filter(name__icontains=name).limit(limit).offset(skip)
+            return list_games
+        elif genre:
+            list_games = await Games.filter(genre__icontains=genre).limit(limit).offset(skip)
+            return list_games
+        elif platform:
+            list_games = await Games.filter(platform__icontains=platform).limit(limit).offset(skip)
+            return list_games
+    else:
+        list_games = await Games.all().limit(limit).offset(skip)
+        return list_games
 
 @router.post('/')
 async def add_game(game: Game) -> dict:
