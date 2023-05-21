@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from games.schemas import Game
-from games.models import Games
+from schemas.games import Game
+from models.games import Games
 
 router = APIRouter(
     prefix='/games',
