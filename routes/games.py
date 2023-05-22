@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from schemas.games import Game
-from models.games import Games
+from games.schemas import Game
+from games.models import Games
 
 router = APIRouter(
     prefix='/games',
-    tags=['games'],
+    tags=['games']
 )
 
 @router.get('/', response_model=None)
@@ -14,7 +14,7 @@ async def games(
     name: str | None = None,
     genre: str | None = None,
     platform: str | None = None
-) -> list[Games] | None:
+) -> list | None:
     skip = limit * (page - 1)
     if name or genre or platform:
         if name:
