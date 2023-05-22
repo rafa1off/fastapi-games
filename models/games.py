@@ -1,4 +1,6 @@
 from tortoise import models, fields
+from pydantic import BaseModel
+
 
 class Games(models.Model):
     name = fields.CharField(max_length=20)
@@ -10,3 +12,13 @@ class Games(models.Model):
 
     class Meta:
         ordering = ['-id']
+
+
+class Game(BaseModel):
+    id: int | None = None
+    name: str
+    genre: str
+    platform: str
+
+    class Config:
+        orm_mode = True

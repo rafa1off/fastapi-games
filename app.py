@@ -13,7 +13,7 @@ register_tortoise(
     app,
     db_url=os.getenv('POSTGRES_URI'),
     modules={
-        'models': ['games.models']
+        'models': ['models.games']
     },
     generate_schemas=True
 )
