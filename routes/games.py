@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from middlewares.pagination import pagination
+from middlewares.id_validation import id_validation
 from models.games import Games, Game
 from configs.exceptions import BadRequest, NotFound
 
@@ -27,52 +28,54 @@ async def search_games(
     name: str | None = None,
     genre: str | None = None,
     platform: str | None = None
-) -> list:
-    if name or genre or platform:
-        if name:
-            return await Games.filter(name__icontains=name).limit(page_data['limit']).offset(page_data['skip'])
-        elif genre:
-            return await Games.filter(genre__icontains=genre).limit(page_data['limit']).offset(page_data['skip'])
-        else:
-            return await Games.filter(platform__icontains=platform).limit(page_data['limit']).offset(page_data['skip'])
+) -> list | None:
+    if name:
+        return await Games.filter(
+            name__icontains=name
+        ).limit(page_data['limit']).offset(page_data['skip'])
+    elif genre:
+        return await Games.filter(
+            genre__icontains=genre
+        ).limit(page_data['limit']).offset(page_data['skip'])
+    elif platform:
+        return await Games.filter(
+            platform__icontains=platform
+        ).limit(page_data['limit']).offset(page_data['skip'])
     else:
         return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
 
 @router.get('/{game_id}', response_model=Game)
-async def get_game(game_id: int) -> Games:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            return game
-        else:
-            raise NotFound(detail='Game not found')
+async def get_game(game_id: int = Depends(id_validation)) -> Games:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        return game
     else:
-        raise BadRequest(detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')
 
 @router.put('/{game_id}')
-async def update_game(game_id: int, game_data: Game) -> dict:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            await game.update_from_dict({
-                'name': game_data.name,
-                'genre': game_data.genre,
-                'platform': game_data.platform
-            }).save()
-            return {'message': f'Game {game.name} updated'}
-        else:
-            raise NotFound(detail='Game not found')
+async def update_game(
+    game_data: Game,
+    game_id: int = Depends(id_validation)
+) -> dict:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        await game.update_from_dict({
+            'name': game_data.name,
+            'genre': game_data.genre,
+            'platform': game_data.platform
+        }).save()
+        return {'message': f'Game {game.name} updated'}
     else:
-        raise BadRequest(detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')
 
 @router.delete('/{game_id}')
-async def delete_game(game_id: int, game_data: Game) -> dict:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            await game.delete()
-            return {'message': f'Game {game_data.name} removed'}
-        else:
-            raise NotFound(detail='Game not found')
+async def delete_game(
+    game_data: Game,
+    game_id: int = Depends(id_validation)
+) -> dict:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        await game.delete()
+        return {'message': f'Game {game_data.name} removed'}
     else:
-        raise BadRequest(detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')
