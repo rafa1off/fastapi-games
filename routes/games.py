@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from middlewares.pagination import pagination
 from middlewares.id_validation import id_validation
 from models.games import Games, Game
-from configs.exceptions import BadRequest, NotFound
+from configs.exceptions import NotFound
 
 router = APIRouter(
     prefix='/games',

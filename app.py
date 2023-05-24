@@ -11,7 +11,7 @@ app = FastAPI()
 
 register_tortoise(
     app,
-    db_url=os.getenv('POSTGRES_URI'),
+    db_url=os.getenv('POSTGRES_URL'),
     modules={
         'models': ['models.games']
     },
