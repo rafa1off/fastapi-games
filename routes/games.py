@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+from middlewares.pagination import pagination
+from middlewares.id_validation import id_validation
 from models.games import Games, Game
+from configs.exceptions import NotFound
 
 router = APIRouter(
     prefix='/games',
@@ -7,14 +10,8 @@ router = APIRouter(
 )
 
 @router.get('/', response_model=list[Game])
-async def games(limit: int = 5, page: int = 1) -> list:
-    if limit >= 0 and page >= 1:
-        skip = limit * (page - 1)
-        return await Games.all().limit(limit).offset(skip)
-    else:
-        raise HTTPException(status_code=400,
-                            detail='Limit must be greater or equal to 0'
-                            ' and page greater or equal to 1')
+async def games(page_data: dict[str, int] = Depends(pagination)) -> list:
+    return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
 
 @router.post('/', status_code=201)
 async def add_game(game_data: Game) -> dict:
@@ -27,66 +24,58 @@ async def add_game(game_data: Game) -> dict:
 
 @router.get('/search', response_model=list[Game])
 async def search_games(
-    limit: int = 5,
-    page: int = 1,
+    page_data: dict[str, int] = Depends(pagination),
     name: str | None = None,
     genre: str | None = None,
     platform: str | None = None
-) -> list:
-    if limit >= 0 and page >= 1:
-        skip = limit * (page - 1)
-        if name or genre or platform:
-            if name:
-                return await Games.filter(name__icontains=name).limit(limit).offset(skip)
-            elif genre:
-                return await Games.filter(genre__icontains=genre).limit(limit).offset(skip)
-            else:
-                return await Games.filter(platform__icontains=platform).limit(limit).offset(skip)
-        else:
-            return await Games.all().limit(limit).offset(skip)
+) -> list | None:
+    if name:
+        return await Games.filter(
+            name__icontains=name
+        ).limit(page_data['limit']).offset(page_data['skip'])
+    elif genre:
+        return await Games.filter(
+            genre__icontains=genre
+        ).limit(page_data['limit']).offset(page_data['skip'])
+    elif platform:
+        return await Games.filter(
+            platform__icontains=platform
+        ).limit(page_data['limit']).offset(page_data['skip'])
     else:
-        raise HTTPException(status_code=400,
-                            detail='Limit must be greater or equal to 0'
-                            ' and page greater or equal to 1')
+        return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
 
 @router.get('/{game_id}', response_model=Game)
-async def get_game(game_id: int) -> Games:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            return game
-        else:
-            raise HTTPException(status_code=404, detail='Game not found')
+async def get_game(game_id: int = Depends(id_validation)) -> Games:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        return game
     else:
-        raise HTTPException(status_code=400,
-                            detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')
 
 @router.put('/{game_id}')
-async def update_game(game_id: int, game_data: Game) -> dict:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            await game.update_from_dict({
-                'name': game_data.name,
-                'genre': game_data.genre,
-                'platform': game_data.platform
-            }).save()
-            return {'message': f'Game {game.name} updated'}
-        else:
-            raise HTTPException(status_code=404, detail='Game not found')
+async def update_game(
+    game_data: Game,
+    game_id: int = Depends(id_validation)
+) -> dict:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        await game.update_from_dict({
+            'name': game_data.name,
+            'genre': game_data.genre,
+            'platform': game_data.platform
+        }).save()
+        return {'message': f'Game {game.name} updated'}
     else:
-        raise HTTPException(status_code=400,
-                            detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')
 
 @router.delete('/{game_id}')
-async def delete_game(game_id: int, game_data: Game) -> dict:
-    if game_id >= 1:
-        game = await Games.get_or_none(pk=game_id)
-        if game:
-            await game.delete()
-            return {'message': f'Game {game_data.name} removed'}
-        else:
-            raise HTTPException(status_code=404, detail='Game not found')
+async def delete_game(
+    game_data: Game,
+    game_id: int = Depends(id_validation)
+) -> dict:
+    game = await Games.get_or_none(pk=game_id)
+    if game:
+        await game.delete()
+        return {'message': f'Game {game_data.name} removed'}
     else:
-        raise HTTPException(status_code=400,
-                            detail='Id must be greater or equal to 1')
+        raise NotFound(detail='Game not found')

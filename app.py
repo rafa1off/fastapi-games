@@ -1,20 +1,13 @@
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
-
-import os
-from dotenv import load_dotenv
-load_dotenv()
-
+from configs.tortoise import TORTOISE_ORM
 from routes import index, games
 
 app = FastAPI()
 
 register_tortoise(
     app,
-    db_url=os.getenv('POSTGRES_URI'),
-    modules={
-        'models': ['models.games']
-    },
+    config=TORTOISE_ORM,
     generate_schemas=True
 )
 
