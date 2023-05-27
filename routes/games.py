@@ -18,12 +18,15 @@ async def games(page_data: dict[str, int] = Depends(pagination)) -> list:
 
 @router.post('/', status_code=201)
 async def add_game(game_data: Game, current_user=Depends(get_current_user)) -> dict:
-    await Games.create(
-        name=game_data.name,
-        genre=game_data.genre,
-        platform=game_data.platform
-    )
-    return {'message': f'Game {game_data.name} created'}
+    try:
+        await Games.create(
+            name=game_data.name,
+            genre=game_data.genre,
+            platform=game_data.platform
+        )
+        return {'message': f'Game {game_data.name} created'}
+    except Exception:
+        return {'detail': f'Game: {game_data.name} already exists'}
 
 
 @router.get('/search', response_model=list[Game])

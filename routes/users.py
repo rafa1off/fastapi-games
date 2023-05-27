@@ -23,13 +23,16 @@ async def get_user(current_user: User = Depends(get_current_user)):
 
 @router.post('/')
 async def create_user(user_data: UserIn):
-    hashed_pwd = hash_password(user_data.password)
-    await Users.create(
-        username=user_data.username,
-        name=user_data.name,
-        hashed_password=hashed_pwd
-    )
-    return {'message': f'User {user_data.name} created'}
+    try:
+        hashed_pwd = hash_password(user_data.password)
+        await Users.create(
+            username=user_data.username,
+            name=user_data.name,
+            hashed_password=hashed_pwd
+        )
+        return {'message': f'User {user_data.name} created'}
+    except Exception:
+        return {'detail': f'Username: {user_data.username} already exists'}
 
 
 @router.post('/login', response_model=Token)
