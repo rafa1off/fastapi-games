@@ -1,5 +1,6 @@
 from configs.exceptions import BadRequest
 
+
 def pagination(limit: int = 5, page: int = 1):
     if limit >= 0 and page >= 1:
         skip = limit * (page - 1)

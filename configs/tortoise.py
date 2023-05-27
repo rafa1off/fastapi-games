@@ -10,6 +10,7 @@ TORTOISE_ORM = {
         'models': {
             'models': [
                 'models.games',
+                'models.users',
                 'aerich.models'
             ],
         }
