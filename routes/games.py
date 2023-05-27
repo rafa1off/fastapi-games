@@ -9,9 +9,11 @@ router = APIRouter(
     tags=['games']
 )
 
+
 @router.get('/', response_model=list[Game])
 async def games(page_data: dict[str, int] = Depends(pagination)) -> list:
     return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
+
 
 @router.post('/', status_code=201)
 async def add_game(game_data: Game) -> dict:
@@ -21,6 +23,7 @@ async def add_game(game_data: Game) -> dict:
         platform=game_data.platform
     )
     return {'message': f'Game {game_data.name} created'}
+
 
 @router.get('/search', response_model=list[Game])
 async def search_games(
@@ -44,6 +47,7 @@ async def search_games(
     else:
         return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
 
+
 @router.get('/{game_id}', response_model=Game)
 async def get_game(game_id: int = Depends(id_validation)) -> Games:
     game = await Games.get_or_none(pk=game_id)
@@ -51,6 +55,7 @@ async def get_game(game_id: int = Depends(id_validation)) -> Games:
         return game
     else:
         raise NotFound(detail='Game not found')
+
 
 @router.put('/{game_id}')
 async def update_game(
@@ -67,6 +72,7 @@ async def update_game(
         return {'message': f'Game {game.name} updated'}
     else:
         raise NotFound(detail='Game not found')
+
 
 @router.delete('/{game_id}')
 async def delete_game(
