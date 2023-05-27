@@ -3,6 +3,7 @@ from middlewares.pagination import pagination
 from middlewares.id_validation import id_validation
 from models.games import Games, Game
 from configs.exceptions import NotFound
+from configs.auth import get_current_user
 
 router = APIRouter(
     prefix='/games',
@@ -16,7 +17,7 @@ async def games(page_data: dict[str, int] = Depends(pagination)) -> list:
 
 
 @router.post('/', status_code=201)
-async def add_game(game_data: Game) -> dict:
+async def add_game(game_data: Game, current_user=Depends(get_current_user)) -> dict:
     await Games.create(
         name=game_data.name,
         genre=game_data.genre,
@@ -60,7 +61,8 @@ async def get_game(game_id: int = Depends(id_validation)) -> Games:
 @router.put('/{game_id}')
 async def update_game(
     game_data: Game,
-    game_id: int = Depends(id_validation)
+    game_id: int = Depends(id_validation),
+    current_user=Depends(get_current_user)
 ) -> dict:
     game = await Games.get_or_none(pk=game_id)
     if game:
@@ -76,12 +78,12 @@ async def update_game(
 
 @router.delete('/{game_id}')
 async def delete_game(
-    game_data: Game,
-    game_id: int = Depends(id_validation)
+    game_id: int = Depends(id_validation),
+    current_user=Depends(get_current_user)
 ) -> dict:
     game = await Games.get_or_none(pk=game_id)
     if game:
         await game.delete()
-        return {'message': f'Game {game_data.name} removed'}
+        return {'message': f'Game {game.name} removed'}
     else:
         raise NotFound(detail='Game not found')
