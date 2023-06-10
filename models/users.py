@@ -1,6 +1,7 @@
 from tortoise import models, fields
 from pydantic import BaseModel
 
+
 class Users(models.Model):
     username = fields.CharField(max_length=20, pk=True, unique=True)
     name = fields.CharField(max_length=20)
@@ -10,7 +11,7 @@ class Users(models.Model):
         return self.username
 
     class Meta:
-        ordering = ['username']
+        ordering = ["username"]
 
 
 class User(BaseModel):

@@ -5,88 +5,90 @@ from models.games import Games, Game
 from configs.exceptions import NotFound
 from configs.auth import get_current_user
 
-router = APIRouter(
-    prefix='/games',
-    tags=['games']
-)
+router = APIRouter(prefix="/games", tags=["games"])
 
 
-@router.get('/', response_model=list[Game])
+@router.get("/", response_model=list[Game])
 async def games(page_data: dict[str, int] = Depends(pagination)) -> list:
-    return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
+    return await Games.all().limit(page_data["limit"]).offset(page_data["skip"])
 
 
-@router.post('/', status_code=201)
+@router.post("/", status_code=201)
 async def add_game(game_data: Game, current_user=Depends(get_current_user)) -> dict:
     try:
         await Games.create(
-            name=game_data.name,
-            genre=game_data.genre,
-            platform=game_data.platform
+            name=game_data.name, genre=game_data.genre, platform=game_data.platform
         )
-        return {'message': f'Game {game_data.name} created'}
+        return {"message": f"Game {game_data.name} created"}
     except Exception:
-        return {'detail': f'Game: {game_data.name} already exists'}
+        return {"detail": f"Game: {game_data.name} already exists"}
 
 
-@router.get('/search', response_model=list[Game])
+@router.get("/search", response_model=list[Game])
 async def search_games(
     page_data: dict[str, int] = Depends(pagination),
     name: str | None = None,
     genre: str | None = None,
-    platform: str | None = None
+    platform: str | None = None,
 ) -> list | None:
     if name:
-        return await Games.filter(
-            name__icontains=name
-        ).limit(page_data['limit']).offset(page_data['skip'])
+        return (
+            await Games.filter(name__icontains=name)
+            .limit(page_data["limit"])
+            .offset(page_data["skip"])
+        )
     elif genre:
-        return await Games.filter(
-            genre__icontains=genre
-        ).limit(page_data['limit']).offset(page_data['skip'])
+        return (
+            await Games.filter(genre__icontains=genre)
+            .limit(page_data["limit"])
+            .offset(page_data["skip"])
+        )
     elif platform:
-        return await Games.filter(
-            platform__icontains=platform
-        ).limit(page_data['limit']).offset(page_data['skip'])
+        return (
+            await Games.filter(platform__icontains=platform)
+            .limit(page_data["limit"])
+            .offset(page_data["skip"])
+        )
     else:
-        return await Games.all().limit(page_data['limit']).offset(page_data['skip'])
+        return await Games.all().limit(page_data["limit"]).offset(page_data["skip"])
 
 
-@router.get('/{game_id}', response_model=Game)
+@router.get("/{game_id}", response_model=Game)
 async def get_game(game_id: int = Depends(id_validation)) -> Games:
     game = await Games.get_or_none(pk=game_id)
     if game:
         return game
     else:
-        raise NotFound(detail='Game not found')
+        raise NotFound(detail="Game not found")
 
 
-@router.put('/{game_id}')
+@router.put("/{game_id}")
 async def update_game(
     game_data: Game,
     game_id: int = Depends(id_validation),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ) -> dict:
     game = await Games.get_or_none(pk=game_id)
     if game:
-        await game.update_from_dict({
-            'name': game_data.name,
-            'genre': game_data.genre,
-            'platform': game_data.platform
-        }).save()
-        return {'message': f'Game {game.name} updated'}
+        await game.update_from_dict(
+            {
+                "name": game_data.name,
+                "genre": game_data.genre,
+                "platform": game_data.platform,
+            }
+        ).save()
+        return {"message": f"Game {game.name} updated"}
     else:
-        raise NotFound(detail='Game not found')
+        raise NotFound(detail="Game not found")
 
 
-@router.delete('/{game_id}')
+@router.delete("/{game_id}")
 async def delete_game(
-    game_id: int = Depends(id_validation),
-    current_user=Depends(get_current_user)
+    game_id: int = Depends(id_validation), current_user=Depends(get_current_user)
 ) -> dict:
     game = await Games.get_or_none(pk=game_id)
     if game:
         await game.delete()
-        return {'message': f'Game {game.name} removed'}
+        return {"message": f"Game {game.name} removed"}
     else:
-        raise NotFound(detail='Game not found')
+        raise NotFound(detail="Game not found")

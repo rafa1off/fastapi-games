@@ -6,4 +6,4 @@ def id_validation(game_id: int) -> int:
         id = game_id
         return id
     else:
-        raise BadRequest(detail='Id must be greater or equal to 1')
+        raise BadRequest(detail="Id must be greater or equal to 1")

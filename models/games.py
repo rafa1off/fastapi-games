@@ -11,7 +11,7 @@ class Games(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-id']
+        ordering = ["-id"]
 
 
 class Game(BaseModel):
